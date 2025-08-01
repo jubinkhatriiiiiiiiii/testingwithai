@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eduvault - Your Gateway to Academic Excellence</title>
+    <meta
+      name="description"
+      content="Access thousands of free study materials, practice papers, and educational resources. Your complete platform for academic success."
+    />
+    <meta
+      name="keywords"
+      content="study materials, education, notes, academic resources, free pdf, students"
+    />
+    <meta name="author" content="AdrosNotesHub" />
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="AdrosNotesHub - Study Resources" />
+    <meta
+      property="og:description"
+      content="Your gateway to academic excellence with free educational resources"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://adrosnoteshub.com" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AdrosNotesHub - Study Resources" />
+    <meta
+      name="twitter:description"
+      content="Your gateway to academic excellence with free educational resources"
+    />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#1D4ED8" />
+    <meta name="msapplication-TileColor" content="#1D4ED8" />
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/placeholder.svg" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="AdrosNotes" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <!-- Global Error Handlers -->
+    <script>
+      // Handle uncaught JavaScript errors
+      window.addEventListener("error", function (event) {
+        console.error("Global error caught:", event.message, {
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          error: event.error?.message || event.error,
+        });
+
+        // Don't show the error to users for third-party scripts
+        if (
+          event.filename &&
+          (event.filename.includes("tawk.to") ||
+            event.filename.includes("embed"))
+        ) {
+          console.warn("Third-party script error suppressed:", event.message);
+          event.preventDefault();
+          return true;
+        }
+      });
+
+      // Handle unhandled promise rejections
+      window.addEventListener("unhandledrejection", function (event) {
+        console.error(
+          "Unhandled promise rejection:",
+          event.reason?.message || event.reason,
+        );
+
+        // Suppress network errors from third-party services
+        if (
+          event.reason &&
+          event.reason.message &&
+          (event.reason.message.includes("Failed to fetch") ||
+            event.reason.message.includes("NetworkError"))
+        ) {
+          console.warn("Network error suppressed:", event.reason.message);
+          event.preventDefault();
+        }
+      });
+
+      // Handle fetch errors specifically
+      const originalFetch = window.fetch;
+      window.fetch = function (...args) {
+        return originalFetch.apply(this, args).catch((error) => {
+          // Log the error but don't crash the app
+          console.warn("Fetch error caught:", error.message, "URL:", args[0]);
+
+          // Re-throw only if it's not from tawk.to
+          if (!args[0] || !args[0].toString().includes("tawk.to")) {
+            throw error;
+          }
+
+          // Return a dummy response for tawk.to errors
+          return new Response(
+            JSON.stringify({ error: "Network unavailable" }),
+            {
+              status: 503,
+              statusText: "Service Unavailable",
+            },
+          );
+        });
+      };
+    </script>
+
+    <script type="module" src="/client/App.tsx"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((registration) => {
+              console.log("ServiceWorker registered successfully");
+            })
+            .catch((error) => {
+              console.log("ServiceWorker registration failed:", error);
+            });
+        });
+      }
+    </script>
+
+    <!--Start of Tawk.to Script with Error Handling-->
+    <script type="text/javascript">
+      (function () {
+        // Initialize Tawk variables
+        window.Tawk_API = window.Tawk_API || {};
+        window.Tawk_LoadStart = new Date();
+
+        // Error handling for Tawk.to
+        var tawkTimeout;
+        var tawkLoaded = false;
+
+        // Set a timeout to detect if Tawk.to fails to load
+        tawkTimeout = setTimeout(function () {
+          if (!tawkLoaded) {
+            console.warn(
+              "Tawk.to chat widget failed to load within 10 seconds",
+            );
+            // You could show a fallback contact method here
+          }
+        }, 10000);
+
+        // Success callback
+        window.Tawk_API.onLoad = function () {
+          tawkLoaded = true;
+          clearTimeout(tawkTimeout);
+          console.log("Tawk.to chat widget loaded successfully");
+        };
+
+        // Error callback
+        window.Tawk_API.onError = function () {
+          console.error("Tawk.to chat widget encountered an error");
+          clearTimeout(tawkTimeout);
+        };
+
+        try {
+          // Create and load the script
+          var s1 = document.createElement("script");
+          var s0 = document.getElementsByTagName("script")[0];
+
+          s1.async = true;
+          s1.src = "https://embed.tawk.to/687e0952fcac9d191f15701c/1j0m58qr7";
+          s1.charset = "UTF-8";
+          s1.setAttribute("crossorigin", "anonymous");
+
+          // Add error handling to the script element
+          s1.onerror = function () {
+            console.error("Failed to load Tawk.to script");
+            clearTimeout(tawkTimeout);
+            // Remove the failed script element
+            if (s1.parentNode) {
+              s1.parentNode.removeChild(s1);
+            }
+          };
+
+          s1.onload = function () {
+            console.log("Tawk.to script loaded successfully");
+          };
+
+          s0.parentNode.insertBefore(s1, s0);
+        } catch (error) {
+          console.error("Error initializing Tawk.to:", error);
+          clearTimeout(tawkTimeout);
+        }
+      })();
+    </script>
+    <!--End of Tawk.to Script-->
+  </body>
+</html>
