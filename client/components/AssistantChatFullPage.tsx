@@ -39,13 +39,19 @@ const AssistantChatFullPage = () => {
     const userMessage = { role: "user", content: input };
     const newMessages = [...messages, userMessage];
     
+    // Always update the UI with the user's message immediately
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/assistant", {
+      // Use absolute URL for Netlify deployment
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? '/api/assistant' 
+        : '/api/assistant';
+      
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: newMessages }),
@@ -57,9 +63,12 @@ const AssistantChatFullPage = () => {
       }
 
       const data = await response.json();
+      // Ensure we're adding the assistant's reply to the messages
       setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
     } catch (err) {
       console.error("Error sending message:", err);
+      // Even if there's an error, we still want to show the user's message
+      // The error message will be displayed separately
       setError("Sorry, I encountered an error. Please try again.");
     } finally {
       setIsLoading(false);

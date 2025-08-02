@@ -120,13 +120,19 @@ async function callNvidiaAPI(messages: any[], apiKey: string, model: string): Pr
 router.post("/assistant", async (req, res) => {
   const { messages } = req.body;
 
+  // Add logging for debugging
+  console.log("Received messages:", JSON.stringify(messages, null, 2));
+
   if (!messages || !Array.isArray(messages)) {
+    console.error("Invalid or missing 'messages' in request body");
     return res.status(400).json({ error: "Invalid or missing 'messages'" });
   }
 
   try {
     // Get the last user message content
     const lastUserMessage = messages.filter(m => m.role === "user").slice(-1)[0]?.content || "";
+
+    console.log("Processing user message:", lastUserMessage);
 
     // Split into multiple questions
     const questions = splitQuestions(lastUserMessage);
@@ -160,14 +166,21 @@ router.post("/assistant", async (req, res) => {
         { role: "user", content: questionsForAI.join(". ") }
       ];
 
+      console.log("Calling NVIDIA API with questions:", questionsForAI);
+
       let modelReply = "";
       try {
         modelReply = await callNvidiaAPI(messagesForApi, PRIMARY_NVIDIA_API_KEY, PRIMARY_MODEL);
-      } catch {
+        console.log("Primary model response:", modelReply);
+      } catch (primaryError) {
+        console.error("Primary model failed:", primaryError);
         try {
           modelReply = await callNvidiaAPI(messagesForApi, SECONDARY_NVIDIA_API_KEY, SECONDARY_MODEL);
-        } catch {
+          console.log("Secondary model response:", modelReply);
+        } catch (secondaryError) {
+          console.error("Secondary model failed:", secondaryError);
           modelReply = await callNvidiaAPI(messagesForApi, TERTIARY_NVIDIA_API_KEY, TERTIARY_MODEL);
+          console.log("Tertiary model response:", modelReply);
         }
       }
 
@@ -178,10 +191,12 @@ router.post("/assistant", async (req, res) => {
       }
     }
 
+    console.log("Final reply:", finalReply.trim());
+
     return res.json({ reply: finalReply.trim() });
 
   } catch (error) {
-    console.error("Unhandled error:", error);
+    console.error("Unhandled error in assistant route:", error);
     return res.status(500).json({ error: "Sorry, I'm having trouble. Try again later." });
   }
 });

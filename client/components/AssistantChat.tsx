@@ -17,24 +17,38 @@ const AssistantChat = () => {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    const newMessages = [...messages, { role: "user", content: input }];
+    const userMessage = { role: "user", content: input };
+    const newMessages = [...messages, userMessage];
+    
+    // Always update the UI with the user's message immediately
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/assistant", {
+      // Use absolute URL for Netlify deployment
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? '/api/assistant' 
+        : '/api/assistant';
+      
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ messages: newMessages }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setMessages([...newMessages, { role: "assistant", content: data.reply }]);
+      setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
     } catch (error) {
       console.error("Error sending message:", error);
-      setMessages([...newMessages, { role: "assistant", content: "Sorry, something went wrong. Please try again later." }]);
+      // Even if there's an error, we still want to show the user's message
+      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, something went wrong. Please try again later." }]);
     } finally {
       setIsLoading(false);
     }
