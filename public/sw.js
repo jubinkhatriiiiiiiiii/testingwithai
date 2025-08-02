@@ -166,19 +166,30 @@ async function networkFirst(request, cacheName) {
   }
 }
 
-// Stale while revalidate strategy
 async function staleWhileRevalidate(request, cacheName) {
   const cachedResponse = await caches.match(request);
 
-  const fetchPromise = fetch(request).then((networkResponse) => {
+  if (cachedResponse) {
+    // Trigger fetch and update cache asynchronously, but don't wait for it
+    fetch(request).then(async (networkResponse) => {
+      if (networkResponse.ok) {
+        const cache = await caches.open(cacheName);
+        cache.put(request, networkResponse.clone());
+      }
+    }).catch((error) => {
+      console.error("Service Worker: Error updating cache in staleWhileRevalidate", error);
+    });
+
+    return cachedResponse;
+  } else {
+    // No cached response, wait for network response
+    const networkResponse = await fetch(request);
     if (networkResponse.ok) {
-      const cache = caches.open(cacheName);
-      cache.then((c) => c.put(request, networkResponse.clone()));
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
     }
     return networkResponse;
-  });
-
-  return cachedResponse || fetchPromise;
+  }
 }
 
 // Helper function to determine if asset is static
